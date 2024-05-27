@@ -1,2 +1,2 @@
-# C-DIGO-TFG-MATEM-TICAS
+# CODIGO-TFG-MATEMATICAS
 Código del TFG del grado de matemáticas
