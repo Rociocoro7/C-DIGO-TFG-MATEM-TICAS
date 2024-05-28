@@ -164,20 +164,8 @@ importance(modelo_rf,type=1, class=NULL,scale=TRUE)
 importance(modelo_rf,type=2,class=NULL,scale=TRUE)
 
 
-plot(margin(rfModel, observed=iris$Species), ylab="Margin")
-plot(margin(rfModel), ylab="Margin", pch=19, col="black")
 
-# Añadir puntos coloreados con colores específicos
-points(1:length(margins), margins, col=as.numeric(iris$Species), pch=19)
-legend("bottomright", legend=levels(iris$Species), col=1:3, pch=19)
-
-
-predicciones_oob <- predict(modelo_rf, OOB = TRUE)
-error_oob <- mean(predicciones_oob != iris$Species)
-print(paste("Error OOB:", error_oob))
-
-
-
+#eliminacion recursiva de variables
 control <- rfeControl(functions=rfFuncs, method="cv", number=150)
 results <- rfe(iris[,1:4], iris[,5], rfeControl=control, size=c(1:4))
 results$variables
@@ -192,66 +180,30 @@ ggplot(results$results, aes(x = Variables, y = Accuracy)) +
   theme(plot.title = element_text(hjust = 0.5))  # Centrar el título del gráfico
 rfModel2 <- randomForest(Species~ Petal.Width + Petal.Length, data = iris, ntree = 1000, proximity=TRUE, oob.prox=TRUE, keep.forest=TRUE, importance=TRUE, margin=TRUE)
 print(rfModel2)
+
+
+
+#represento la proximidad de los datos de iris
 outlier_measure <- outlier(rfModel)
-
-# Añadir la medida de outlier al dataframe original
 iris$outlier <- outlier_measure
-
-# Plotear los outliers en una gráfica 2D (usando las dos primeras componentes principales)
-cmd <- cmdscale(1 - rfModel$proximity, k=2)
-cmd_data <- data.frame(cmd, Species=iris$Species, Outlier=iris$outlier)
-
-ggplot(cmd_data, aes(x=V1, y=V2, color=Outlier, shape=Species)) +
-  geom_point(size=3) +
-  scale_color_gradient(low="blue", high="red") +
-  labs(title="Visualización de Outliers usando Random Forest",
-       x="Coordenada 1", y="Coordenada 2") +
-  theme_minimal() +
-  theme(legend.position="right")
-
 plot(iris$outlier)
 plot(iris$outlier, main="Medida de Outliers de Iris utilizando un bosque aleatorio",
      xlab="Índice del dato", ylab="Medida de outlier", col=iris$Species,
      pch=19)
 legend("topleft", legend=levels(iris$Species), col=1:3, pch=19)
 
-# Instalar y cargar el paquete randomForest si es necesario
-if (!requireNamespace("randomForest", quietly = TRUE)) {
-  install.packages("randomForest")
-}
-library(randomForest)
 
-# Usar el dataset iris como ejemplo
-data(iris)
-
-# Entrenar un modelo de Random Forest con proximidad
-set.seed(123)  # Fijar semilla para reproducibilidad
-rf_model <- randomForest(Species ~ ., data=iris, proximity=TRUE)
-
-# Calcular la matriz de proximidad
+#opcion del TFG
 proximity_matrix <- rfModel$proximity
-
-# Calcular la medida de outlier
 n <- nrow(proximity_matrix)
 outlier_measure <- numeric(n)
-
 for (i in 1:n) {
   outlier_measure[i] <- sum(proximity_matrix[i, -i]^2)
 }
-
-# Añadir la medida de outlier al dataframe original
 iris$outlier <- outlier_measure
-
-# Visualizar los outliers con un gráfico simple
 plot(iris$outlier, main="Medida de proximidad en Iris",
      xlab="Índice del dato", ylab="Medida de proximidad", col=as.numeric(iris$Species),
      pch=19)
 legend("bottomleft", legend=levels(iris$Species), col=1:3, pch=19)
-# Determinar las coordenadas para centrar la leyenda
-legend_x <- mean(par("usr")[1:2])
-legend_y <- mean(par("usr")[3:4])
 
-# Añadir la leyenda en el centro
-legend(legend_x, legend_y, legend=levels(iris$Species), col=1:3, pch=19,
-       xjust=0.5, yjust=0.5, title="Species", bty="n")
 
